@@ -191,7 +191,7 @@ const Index = () => {
               <span className="font-semibold">Rwanda Education Platform</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 Rwanda Education Platform. Empowering students nationwide.
+              © 2025 Rwanda Education Platform. Developed by Vincent De Paul N.
             </p>
           </div>
         </div>
