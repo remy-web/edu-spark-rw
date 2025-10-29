@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Users, BookOpen, LogOut, BarChart3 } from "lucide-react";
+import FileUploadSection from "@/components/FileUploadSection";
+import ReferralCodeSection from "@/components/ReferralCodeSection";
 
 interface Statistics {
   education_level: string;
@@ -160,6 +162,11 @@ const AdminDashboard = () => {
               </div>
             </>
           )}
+
+          <div className="grid gap-6 md:grid-cols-2 mt-8">
+            <FileUploadSection />
+            <ReferralCodeSection />
+          </div>
         </div>
       </main>
     </div>

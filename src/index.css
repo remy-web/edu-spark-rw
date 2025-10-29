@@ -9,7 +9,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Rwanda-inspired education platform colors */
-    --background: 0 0% 100%;
+    --background: 197 100% 95%;
     --foreground: 220 15% 20%;
 
     --card: 0 0% 100%;

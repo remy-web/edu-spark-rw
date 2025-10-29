@@ -52,10 +52,31 @@ const StudentPortal = () => {
 
   const fetchGuides = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if user has a referral code
+      const { data: referralData } = await supabase
+        .from("user_referral_codes")
+        .select("referral_code_id, referral_codes(created_by)")
+        .eq("user_id", user.id)
+        .single();
+
+      let query = supabase
         .from("study_guides")
         .select("*")
         .order("created_at", { ascending: false });
+
+      // If user has a referral code, show only guides from that teacher
+      // Otherwise, show guides without a created_by (public guides)
+      if (referralData) {
+        const teacherId = (referralData.referral_codes as any)?.created_by;
+        query = query.eq("created_by", teacherId);
+      } else {
+        query = query.is("created_by", null);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 

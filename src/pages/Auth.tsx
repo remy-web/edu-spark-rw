@@ -23,6 +23,7 @@ const Auth = () => {
     const password = formData.get("password") as string;
     const fullName = formData.get("fullName") as string;
     const role = formData.get("role") as "admin" | "student";
+    const referralCode = formData.get("referralCode") as string;
 
     try {
       const redirectUrl = `${window.location.origin}/`;
@@ -47,6 +48,30 @@ const Auth = () => {
           .insert({ user_id: authData.user.id, role });
 
         if (roleError) throw roleError;
+
+        // Handle referral code if provided
+        if (referralCode && referralCode.trim() !== "") {
+          const { data: codeData, error: codeError } = await supabase
+            .from("referral_codes")
+            .select("id")
+            .eq("code", referralCode)
+            .eq("is_active", true)
+            .single();
+
+          if (codeError || !codeData) {
+            toast.error("Invalid referral code");
+            return;
+          }
+
+          const { error: userCodeError } = await supabase
+            .from("user_referral_codes")
+            .insert({ 
+              user_id: authData.user.id, 
+              referral_code_id: codeData.id 
+            });
+
+          if (userCodeError) throw userCodeError;
+        }
 
         toast.success("Account created successfully!");
         navigate(role === "admin" ? "/admin" : "/student");
@@ -192,6 +217,18 @@ const Auth = () => {
                     <option value="student">Student</option>
                     <option value="admin">Administrator</option>
                   </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-referral">Referral Code (Optional)</Label>
+                  <Input
+                    id="signup-referral"
+                    name="referralCode"
+                    type="text"
+                    placeholder="Enter referral code from your teacher"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter a code from your teacher to access premium content
+                  </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating account..." : "Create Account"}

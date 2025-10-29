@@ -49,6 +49,24 @@ export type Database = {
           },
         ]
       }
+      newsletter_subscriptions: {
+        Row: {
+          email: string
+          id: string
+          subscribed_at: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          subscribed_at?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          subscribed_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -64,6 +82,30 @@ export type Database = {
           created_at?: string | null
           full_name?: string
           id?: string
+        }
+        Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          created_by: string
+          id: string
+          is_active: boolean | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_active?: boolean | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_active?: boolean | null
         }
         Relationships: []
       }
@@ -94,6 +136,7 @@ export type Database = {
       study_guides: {
         Row: {
           created_at: string | null
+          created_by: string | null
           description: string | null
           education_level: string
           file_url: string
@@ -104,6 +147,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           education_level: string
           file_url: string
@@ -114,6 +158,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           education_level?: string
           file_url?: string
@@ -123,6 +168,35 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      user_referral_codes: {
+        Row: {
+          id: string
+          referral_code_id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          referral_code_id: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          referral_code_id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_referral_codes_referral_code_id_fkey"
+            columns: ["referral_code_id"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -159,7 +233,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "student"
+      app_role: "admin" | "student" | "teacher"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -287,7 +361,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "student"],
+      app_role: ["admin", "student", "teacher"],
     },
   },
 } as const
