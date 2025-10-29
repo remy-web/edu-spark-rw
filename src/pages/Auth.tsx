@@ -23,7 +23,6 @@ const Auth = () => {
     const password = formData.get("password") as string;
     const fullName = formData.get("fullName") as string;
     const role = formData.get("role") as "admin" | "student";
-    const referralCode = formData.get("referralCode") as string;
 
     try {
       const redirectUrl = `${window.location.origin}/`;
@@ -49,30 +48,6 @@ const Auth = () => {
 
         if (roleError) throw roleError;
 
-        // Handle referral code if provided
-        if (referralCode && referralCode.trim() !== "") {
-          const { data: codeData, error: codeError } = await supabase
-            .from("referral_codes")
-            .select("id")
-            .eq("code", referralCode)
-            .eq("is_active", true)
-            .single();
-
-          if (codeError || !codeData) {
-            toast.error("Invalid referral code");
-            return;
-          }
-
-          const { error: userCodeError } = await supabase
-            .from("user_referral_codes")
-            .insert({ 
-              user_id: authData.user.id, 
-              referral_code_id: codeData.id 
-            });
-
-          if (userCodeError) throw userCodeError;
-        }
-
         toast.success("Account created successfully!");
         navigate(role === "admin" ? "/admin" : "/student");
       }
@@ -90,6 +65,7 @@ const Auth = () => {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const referralCode = formData.get("referralCode") as string;
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -98,6 +74,44 @@ const Auth = () => {
       });
 
       if (error) throw error;
+
+      // Handle referral code if provided
+      if (referralCode && referralCode.trim() !== "") {
+        const { data: codeData, error: codeError } = await supabase
+          .from("referral_codes")
+          .select("id")
+          .eq("code", referralCode)
+          .eq("is_active", true)
+          .single();
+
+        if (codeError || !codeData) {
+          toast.error("Invalid referral code");
+          setLoading(false);
+          return;
+        }
+
+        // Check if user already has this referral code
+        const { data: existingCode } = await supabase
+          .from("user_referral_codes")
+          .select("id")
+          .eq("user_id", data.user.id)
+          .eq("referral_code_id", codeData.id)
+          .single();
+
+        if (!existingCode) {
+          const { error: userCodeError } = await supabase
+            .from("user_referral_codes")
+            .insert({ 
+              user_id: data.user.id, 
+              referral_code_id: codeData.id 
+            });
+
+          if (userCodeError) throw userCodeError;
+          toast.success("Referral code linked successfully!");
+        } else {
+          toast.info("You already have this referral code linked");
+        }
+      }
 
       // Check user role
       const { data: roleData } = await supabase
@@ -167,6 +181,18 @@ const Auth = () => {
                     required
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signin-referral">Referral Code (Optional)</Label>
+                  <Input
+                    id="signin-referral"
+                    name="referralCode"
+                    type="text"
+                    placeholder="Enter referral code from your teacher"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Link a teacher's code to access their premium content
+                  </p>
+                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
@@ -217,18 +243,6 @@ const Auth = () => {
                     <option value="student">Student</option>
                     <option value="admin">Administrator</option>
                   </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-referral">Referral Code (Optional)</Label>
-                  <Input
-                    id="signup-referral"
-                    name="referralCode"
-                    type="text"
-                    placeholder="Enter referral code from your teacher"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter a code from your teacher to access premium content
-                  </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating account..." : "Create Account"}
