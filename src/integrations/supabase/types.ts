@@ -49,6 +49,36 @@ export type Database = {
           },
         ]
       }
+      material_downloads: {
+        Row: {
+          completed: boolean | null
+          downloaded_at: string
+          id: string
+          level: string
+          material_name: string
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          downloaded_at?: string
+          id?: string
+          level: string
+          material_name: string
+          subject: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          downloaded_at?: string
+          id?: string
+          level?: string
+          material_name?: string
+          subject?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       newsletter_subscriptions: {
         Row: {
           email: string

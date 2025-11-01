@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Users, BookOpen, LogOut, BarChart3 } from "lucide-react";
 import FileUploadSection from "@/components/FileUploadSection";
 import ReferralCodeSection from "@/components/ReferralCodeSection";
+import REBMaterialsTab from "@/components/REBMaterialsTab";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 
 interface Statistics {
   education_level: string;
@@ -167,6 +170,29 @@ const AdminDashboard = () => {
             <FileUploadSection />
             <ReferralCodeSection />
           </div>
+
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle>REB Materials & Analytics</CardTitle>
+              <CardDescription>
+                Manage study materials and track download analytics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="materials" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="materials">REB Materials</TabsTrigger>
+                  <TabsTrigger value="analytics">Analytics Dashboard</TabsTrigger>
+                </TabsList>
+                <TabsContent value="materials" className="mt-6">
+                  <REBMaterialsTab />
+                </TabsContent>
+                <TabsContent value="analytics" className="mt-6">
+                  <AnalyticsDashboard />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
