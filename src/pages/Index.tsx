@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Users, BookOpen, MessageSquare, BarChart3 } from "lucide-react";
+import { GraduationCap, Users, BookOpen, MessageSquare, BarChart3, MessageCircle, QrCode } from "lucide-react";
+import supportQR from "@/assets/support-qr.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -177,6 +178,47 @@ const Index = () => {
                 >
                   {isAuthenticated ? "Go to Dashboard" : "Create Account"}
                 </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 py-16 border-t">
+          <div className="max-w-3xl mx-auto">
+            <Card className="shadow-lg">
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-primary/10 p-4 rounded-full">
+                    <MessageCircle className="h-8 w-8 text-primary" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl md:text-3xl">Contact Support</CardTitle>
+                <CardDescription className="text-lg">
+                  Need help? Get in touch with us directly on WhatsApp
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center gap-6 pb-8">
+                <Button 
+                  size="lg" 
+                  onClick={() => window.open('https://wa.link/e12pas', '_blank')}
+                  className="shadow-lg"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  Chat with Support on WhatsApp
+                </Button>
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <QrCode className="h-5 w-5" />
+                    <span className="text-sm font-medium">Or scan this QR code</span>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-md">
+                    <img 
+                      src={supportQR} 
+                      alt="WhatsApp Support QR Code" 
+                      className="w-48 h-48 object-contain"
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
