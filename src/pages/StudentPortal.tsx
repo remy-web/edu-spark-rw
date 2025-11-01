@@ -6,8 +6,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { BookOpen, Download, LogOut, Search, ThumbsUp, ThumbsDown } from "lucide-react";
+import { BookOpen, Download, LogOut, Search, ThumbsUp, ThumbsDown, FileText, Filter } from "lucide-react";
+import rebMaterialsData from "@/data/reb-materials.csv?raw";
 
 interface StudyGuide {
   id: string;
@@ -18,6 +21,12 @@ interface StudyGuide {
   file_url: string;
 }
 
+interface REBMaterial {
+  level: string;
+  subject: string;
+  link: string;
+}
+
 const StudentPortal = () => {
   const navigate = useNavigate();
   const [guides, setGuides] = useState<StudyGuide[]>([]);
@@ -25,11 +34,24 @@ const StudentPortal = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [feedbackGuideId, setFeedbackGuideId] = useState<string | null>(null);
+  
+  // REB Materials state
+  const [rebMaterials, setRebMaterials] = useState<REBMaterial[]>([]);
+  const [filteredREBMaterials, setFilteredREBMaterials] = useState<REBMaterial[]>([]);
+  const [rebSearchTerm, setRebSearchTerm] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState<string>("all");
+  const [selectedSubject, setSelectedSubject] = useState<string>("all");
+  const [userLevel, setUserLevel] = useState<string>("");
 
   useEffect(() => {
     checkAuth();
     fetchGuides();
+    parseREBMaterials();
   }, []);
+
+  useEffect(() => {
+    filterREBMaterials();
+  }, [rebSearchTerm, selectedLevel, selectedSubject, rebMaterials, userLevel]);
 
   useEffect(() => {
     const filtered = guides.filter(
@@ -82,11 +104,71 @@ const StudentPortal = () => {
 
       setGuides(data || []);
       setFilteredGuides(data || []);
+      
+      // Extract user's education level from guides
+      if (data && data.length > 0) {
+        const level = data[0].education_level;
+        setUserLevel(level);
+        setSelectedLevel(level);
+      }
     } catch (error: any) {
       toast.error("Failed to load study guides");
     } finally {
       setLoading(false);
     }
+  };
+
+  const parseREBMaterials = () => {
+    const lines = rebMaterialsData.trim().split('\n');
+    const headers = lines[0].split(',');
+    
+    const materials: REBMaterial[] = lines.slice(1).map(line => {
+      const values = line.split(',');
+      return {
+        level: values[0],
+        subject: values[1],
+        link: values[2]
+      };
+    });
+    
+    setRebMaterials(materials);
+    setFilteredREBMaterials(materials);
+  };
+
+  const filterREBMaterials = () => {
+    let filtered = rebMaterials;
+
+    // Auto-filter by user's level if available and no manual level selected
+    if (userLevel && selectedLevel !== "all") {
+      filtered = filtered.filter(m => m.level === selectedLevel);
+    } else if (selectedLevel !== "all") {
+      filtered = filtered.filter(m => m.level === selectedLevel);
+    }
+
+    // Filter by subject
+    if (selectedSubject !== "all") {
+      filtered = filtered.filter(m => m.subject === selectedSubject);
+    }
+
+    // Filter by search term
+    if (rebSearchTerm) {
+      filtered = filtered.filter(m =>
+        m.level.toLowerCase().includes(rebSearchTerm.toLowerCase()) ||
+        m.subject.toLowerCase().includes(rebSearchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredREBMaterials(filtered);
+  };
+
+  const getLevels = () => {
+    const levels = Array.from(new Set(rebMaterials.map(m => m.level)));
+    return levels.sort();
+  };
+
+  const getSubjects = () => {
+    const subjects = Array.from(new Set(rebMaterials.map(m => m.subject)));
+    return subjects.sort();
   };
 
   const handleFeedback = async (guideId: string, isHelpful: boolean, comment?: string) => {
@@ -134,13 +216,19 @@ const StudentPortal = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Study Guides Library</h2>
-            <p className="text-muted-foreground">
-              Access educational resources for Secondary 1 Mathematics
-            </p>
-          </div>
+        <Tabs defaultValue="guides" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="guides">Study Guides</TabsTrigger>
+            <TabsTrigger value="reb-materials">REB Materials</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="guides" className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Study Guides Library</h2>
+              <p className="text-muted-foreground">
+                Access educational resources for Secondary 1 Mathematics
+              </p>
+            </div>
 
           <div className="flex gap-4 items-center">
             <div className="flex-1 relative">
@@ -253,7 +341,110 @@ const StudentPortal = () => {
               ))}
             </div>
           )}
-        </div>
+          </TabsContent>
+
+          <TabsContent value="reb-materials" className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">REB Universal Study Materials</h2>
+              <p className="text-muted-foreground">
+                Official Rwanda Education Board study materials for all levels
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex gap-4 items-center flex-wrap">
+                <div className="flex-1 min-w-[200px] relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search materials..."
+                    value={rebSearchTerm}
+                    onChange={(e) => setRebSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                <div className="flex gap-2 items-center flex-wrap">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filter by Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      {getLevels().map(level => (
+                        <SelectItem key={level} value={level}>{level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Filter by Subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Subjects</SelectItem>
+                      {getSubjects().map(subject => (
+                        <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {userLevel && (
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+                  <p className="text-sm text-primary font-medium">
+                    📚 Showing materials for your level: <span className="font-bold">{userLevel}</span>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {filteredREBMaterials.length === 0 ? (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-lg text-muted-foreground">
+                    {rebSearchTerm || selectedLevel !== "all" || selectedSubject !== "all"
+                      ? "No materials found matching your filters."
+                      : "No study materials available."}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredREBMaterials.map((material, index) => (
+                  <Card key={index} className="shadow-md hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg">{material.subject}</CardTitle>
+                          <CardDescription className="mt-1">
+                            {material.level}
+                          </CardDescription>
+                        </div>
+                        <div className="bg-secondary/10 p-2 rounded-lg">
+                          <FileText className="h-5 w-5 text-secondary" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardFooter>
+                      <Button 
+                        className="w-full" 
+                        variant="default"
+                        onClick={() => window.open(material.link, '_blank')}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download PDF
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
