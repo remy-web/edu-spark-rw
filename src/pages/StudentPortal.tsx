@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BookOpen, Download, LogOut, Search, ThumbsUp, ThumbsDown, FileText, Filter } from "lucide-react";
 import rebMaterialsData from "@/data/reb-materials.csv?raw";
+import { feedbackSchema } from "@/lib/validations";
 
 interface StudyGuide {
   id: string;
@@ -173,6 +174,18 @@ const StudentPortal = () => {
 
   const handleFeedback = async (guideId: string, isHelpful: boolean, comment?: string) => {
     try {
+      // Validate input data
+      const validated = feedbackSchema.safeParse({ 
+        comment: comment || undefined, 
+        isHelpful 
+      });
+      
+      if (!validated.success) {
+        const firstError = validated.error.errors[0];
+        toast.error(firstError.message);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
@@ -181,8 +194,8 @@ const StudentPortal = () => {
         .insert({
           user_id: user.id,
           study_guide_id: guideId,
-          is_helpful: isHelpful,
-          comment: comment || null,
+          is_helpful: validated.data.isHelpful,
+          comment: validated.data.comment || null,
         });
 
       if (error) throw error;

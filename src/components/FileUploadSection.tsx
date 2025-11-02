@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
+import { studyGuideSchema } from "@/lib/validations";
 
 const FileUploadSection = () => {
   const [uploading, setUploading] = useState(false);
@@ -15,22 +16,33 @@ const FileUploadSection = () => {
     setUploading(true);
 
     const formData = new FormData(e.currentTarget);
-    const title = formData.get("title") as string;
-    const subject = formData.get("subject") as string;
-    const level = formData.get("level") as string;
-    const description = formData.get("description") as string;
-    const fileUrl = formData.get("fileUrl") as string;
+    const rawData = {
+      title: formData.get("title") as string,
+      subject: formData.get("subject") as string,
+      level: formData.get("level") as string,
+      description: formData.get("description") as string,
+      fileUrl: formData.get("fileUrl") as string,
+    };
 
     try {
+      // Validate input data
+      const validated = studyGuideSchema.safeParse(rawData);
+      if (!validated.success) {
+        const firstError = validated.error.errors[0];
+        toast.error(firstError.message);
+        setUploading(false);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from("study_guides").insert({
-        title,
-        subject,
-        education_level: level,
-        description,
-        file_url: fileUrl,
+        title: validated.data.title,
+        subject: validated.data.subject,
+        education_level: validated.data.level,
+        description: validated.data.description || null,
+        file_url: validated.data.fileUrl,
         created_by: user.id,
       });
 

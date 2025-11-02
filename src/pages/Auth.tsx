@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { GraduationCap } from "lucide-react";
 import classroomBg from "@/assets/classroom-bg.jpg";
+import { signUpSchema, signInSchema } from "@/lib/validations";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -19,21 +20,32 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const fullName = formData.get("fullName") as string;
-    const role = formData.get("role") as "admin" | "student";
+    const rawData = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+      fullName: formData.get("fullName") as string,
+      role: formData.get("role") as "admin" | "student",
+    };
 
     try {
+      // Validate input data
+      const validated = signUpSchema.safeParse(rawData);
+      if (!validated.success) {
+        const firstError = validated.error.errors[0];
+        toast.error(firstError.message);
+        setLoading(false);
+        return;
+      }
+
       const redirectUrl = `${window.location.origin}/`;
       
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
+        email: validated.data.email,
+        password: validated.data.password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: fullName,
+            full_name: validated.data.fullName,
           },
         },
       });
@@ -44,12 +56,12 @@ const Auth = () => {
         // Add user role
         const { error: roleError } = await supabase
           .from("user_roles")
-          .insert({ user_id: authData.user.id, role });
+          .insert({ user_id: authData.user.id, role: validated.data.role });
 
         if (roleError) throw roleError;
 
         toast.success("Account created successfully!");
-        navigate(role === "admin" ? "/admin" : "/student");
+        navigate(validated.data.role === "admin" ? "/admin" : "/student");
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to sign up");
@@ -63,24 +75,35 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const referralCode = formData.get("referralCode") as string;
+    const rawData = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+      referralCode: (formData.get("referralCode") as string) || undefined,
+    };
 
     try {
+      // Validate input data
+      const validated = signInSchema.safeParse(rawData);
+      if (!validated.success) {
+        const firstError = validated.error.errors[0];
+        toast.error(firstError.message);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validated.data.email,
+        password: validated.data.password,
       });
 
       if (error) throw error;
 
       // Handle referral code if provided
-      if (referralCode && referralCode.trim() !== "") {
+      if (validated.data.referralCode && validated.data.referralCode.trim() !== "") {
         const { data: codeData, error: codeError } = await supabase
           .from("referral_codes")
           .select("id")
-          .eq("code", referralCode)
+          .eq("code", validated.data.referralCode)
           .eq("is_active", true)
           .single();
 
