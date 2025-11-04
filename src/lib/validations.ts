@@ -21,7 +21,18 @@ export const studyGuideSchema = z.object({
   fileUrl: z.string()
     .trim()
     .url("Invalid URL format")
-    .max(2000, "URL must be less than 2000 characters"),
+    .max(2000, "URL must be less than 2000 characters")
+    .optional(),
+});
+
+// File upload validation
+export const fileUploadSchema = z.object({
+  file: z.instanceof(File)
+    .refine((file) => file.size <= 20 * 1024 * 1024, "File size must be less than 20MB")
+    .refine(
+      (file) => ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'].includes(file.type),
+      "File must be PDF, DOCX, or PPTX"
+    ),
 });
 
 // Authentication schemas

@@ -78,6 +78,19 @@ const StudentPortal = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Get user's education level from profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("education_level")
+        .eq("id", user.id)
+        .single();
+
+      const userEducationLevel = profileData?.education_level;
+      if (userEducationLevel) {
+        setUserLevel(userEducationLevel);
+        setSelectedLevel(userEducationLevel);
+      }
+
       // Check if user has a referral code
       const { data: referralData } = await supabase
         .from("user_referral_codes")
@@ -89,6 +102,11 @@ const StudentPortal = () => {
         .from("study_guides")
         .select("*")
         .order("created_at", { ascending: false });
+
+      // Filter by education level and referral code
+      if (userEducationLevel) {
+        query = query.eq("education_level", userEducationLevel);
+      }
 
       // If user has a referral code, show only guides from that teacher
       // Otherwise, show guides without a created_by (public guides)
@@ -105,13 +123,6 @@ const StudentPortal = () => {
 
       setGuides(data || []);
       setFilteredGuides(data || []);
-      
-      // Extract user's education level from guides
-      if (data && data.length > 0) {
-        const level = data[0].education_level;
-        setUserLevel(level);
-        setSelectedLevel(level);
-      }
     } catch (error: any) {
       toast.error("Failed to load study guides");
     } finally {
@@ -207,6 +218,33 @@ const StudentPortal = () => {
     }
   };
 
+  const trackDownload = async (materialName: string, level: string, subject: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from('material_downloads').insert({
+        user_id: user.id,
+        material_name: materialName,
+        level: level,
+        subject: subject,
+      });
+    } catch (error) {
+      console.error('Failed to track download:', error);
+    }
+  };
+
+  const handleDownloadGuide = async (guide: StudyGuide) => {
+    await trackDownload(guide.title, guide.education_level, guide.subject);
+    window.open(guide.file_url, '_blank');
+    setFeedbackGuideId(guide.id);
+  };
+
+  const handleDownloadREBMaterial = async (material: REBMaterial) => {
+    await trackDownload(material.subject, material.level, material.subject);
+    window.open(material.link, '_blank');
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
@@ -295,7 +333,11 @@ const StudentPortal = () => {
                     <p className="text-sm text-muted-foreground">{guide.description}</p>
                   </CardContent>
                   <CardFooter className="flex flex-col gap-3">
-                    <Button className="w-full" variant="default">
+                    <Button 
+                      className="w-full" 
+                      variant="default"
+                      onClick={() => handleDownloadGuide(guide)}
+                    >
                       <Download className="mr-2 h-4 w-4" />
                       View Guide
                     </Button>
@@ -446,7 +488,7 @@ const StudentPortal = () => {
                       <Button 
                         className="w-full" 
                         variant="default"
-                        onClick={() => window.open(material.link, '_blank')}
+                        onClick={() => handleDownloadREBMaterial(material)}
                       >
                         <Download className="mr-2 h-4 w-4" />
                         Download PDF

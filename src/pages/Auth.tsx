@@ -27,6 +27,8 @@ const Auth = () => {
       role: formData.get("role") as "admin" | "student",
     };
 
+    const educationLevel = formData.get("educationLevel") as string;
+
     try {
       // Validate input data
       const validated = signUpSchema.safeParse(rawData);
@@ -59,6 +61,16 @@ const Auth = () => {
           .insert({ user_id: authData.user.id, role: validated.data.role });
 
         if (roleError) throw roleError;
+
+        // Update profile with education level
+        if (educationLevel) {
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update({ education_level: educationLevel })
+            .eq("id", authData.user.id);
+
+          if (profileError) console.error("Failed to update education level:", profileError);
+        }
 
         toast.success("Account created successfully!");
         navigate(validated.data.role === "admin" ? "/admin" : "/student");
@@ -265,6 +277,21 @@ const Auth = () => {
                   >
                     <option value="student">Student</option>
                     <option value="admin">Administrator</option>
+                  </select>
+                </div>
+                <div className="space-y-2" id="education-level-field">
+                  <Label htmlFor="signup-level">Education Level</Label>
+                  <select
+                    id="signup-level"
+                    name="educationLevel"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    required
+                  >
+                    <option value="">Select your level</option>
+                    <option value="Primary">Primary</option>
+                    <option value="Secondary 1">Secondary 1</option>
+                    <option value="Secondary 2">Secondary 2</option>
+                    <option value="Secondary 3">Secondary 3</option>
                   </select>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
