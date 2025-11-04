@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { BookOpen, Download, LogOut, Search, ThumbsUp, ThumbsDown, FileText, Filter } from "lucide-react";
 import rebMaterialsData from "@/data/reb-materials.csv?raw";
 import { feedbackSchema } from "@/lib/validations";
+import AIChat from "@/components/AIChat";
 
 interface StudyGuide {
   id: string;
@@ -501,6 +502,7 @@ const StudentPortal = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <AIChat />
     </div>
   );
 };

@@ -10,6 +10,7 @@ import FileUploadSection from "@/components/FileUploadSection";
 import ReferralCodeSection from "@/components/ReferralCodeSection";
 import REBMaterialsTab from "@/components/REBMaterialsTab";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import AIChat from "@/components/AIChat";
 
 interface Statistics {
   education_level: string;
@@ -195,6 +196,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
       </main>
+      <AIChat />
     </div>
   );
 };
