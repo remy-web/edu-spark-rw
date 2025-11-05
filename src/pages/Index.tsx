@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, Users, BookOpen, MessageSquare, BarChart3, MessageCircle, QrCode } from "lucide-react";
 import supportQR from "@/assets/support-qr.png";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -225,19 +226,7 @@ const Index = () => {
         </section>
       </main>
 
-      <footer className="border-t bg-card/50 backdrop-blur-sm mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Rwanda Education Platform</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              © 2025 Rwanda Education Platform. Developed by Vincent De Paul N.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

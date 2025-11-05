@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { GraduationCap } from "lucide-react";
 import classroomBg from "@/assets/classroom-bg.jpg";
 import { signUpSchema, signInSchema } from "@/lib/validations";
+import Footer from "@/components/Footer";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -166,7 +167,7 @@ const Auth = () => {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 relative"
+      className="min-h-screen flex flex-col items-center justify-center p-4 relative"
       style={{
         backgroundImage: `url(${classroomBg})`,
         backgroundSize: 'cover',
@@ -307,6 +308,9 @@ const Auth = () => {
           </Button>
         </CardFooter>
       </Card>
+      <div className="relative z-10 w-full mt-auto">
+        <Footer />
+      </div>
     </div>
   );
 };

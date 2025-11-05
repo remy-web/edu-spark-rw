@@ -11,6 +11,7 @@ import ReferralCodeSection from "@/components/ReferralCodeSection";
 import REBMaterialsTab from "@/components/REBMaterialsTab";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import AIChat from "@/components/AIChat";
+import Footer from "@/components/Footer";
 
 interface Statistics {
   education_level: string;
@@ -75,7 +76,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex flex-col">
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -197,6 +198,7 @@ const AdminDashboard = () => {
         </div>
       </main>
       <AIChat />
+      <Footer />
     </div>
   );
 };

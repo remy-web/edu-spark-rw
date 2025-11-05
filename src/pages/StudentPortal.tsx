@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { BookOpen, Download, LogOut, Search, ThumbsUp, ThumbsDown, FileText, Filter } from "lucide-react";
+import { BookOpen, Download, LogOut, Search, ThumbsUp, ThumbsDown, FileText, Filter, ExternalLink } from "lucide-react";
 import rebMaterialsData from "@/data/reb-materials.csv?raw";
 import { feedbackSchema } from "@/lib/validations";
 import AIChat from "@/components/AIChat";
@@ -253,7 +254,7 @@ const StudentPortal = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex flex-col">
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -275,10 +276,10 @@ const StudentPortal = () => {
           </TabsList>
 
           <TabsContent value="guides" className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">Study Guides Library</h2>
-              <p className="text-muted-foreground">
-                Access educational resources for Secondary 1 Mathematics
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">Additional Materials from Administrators</h3>
+              <p className="text-sm text-muted-foreground">
+                Study guides uploaded by your educators
               </p>
             </div>
 
@@ -400,11 +401,22 @@ const StudentPortal = () => {
           </TabsContent>
 
           <TabsContent value="reb-materials" className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">REB Universal Study Materials</h2>
-              <p className="text-muted-foreground">
-                Official Rwanda Education Board study materials for all levels
-              </p>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">REB Official Materials</h2>
+                <p className="text-muted-foreground">
+                  Official Rwanda Education Board study materials for all levels
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open("https://reb.rw/en/web/reb/p/learning-materials", "_blank")}
+                className="shrink-0"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Explore More on REB Website
+              </Button>
             </div>
 
             <div className="space-y-4">
@@ -503,6 +515,7 @@ const StudentPortal = () => {
         </Tabs>
       </main>
       <AIChat />
+      <Footer />
     </div>
   );
 };
