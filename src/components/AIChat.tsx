@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,16 +11,31 @@ interface Message {
   content: string;
 }
 
+const SUGGESTED_QUESTIONS = [
+  "Show me biology materials",
+  "Explain photosynthesis simply",
+  "What REB resources are available?",
+  "Help me find study guides"
+];
+
 const AIChat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-    const userMessage: Message = { role: "user", content: input };
+  const sendMessage = async (messageText?: string) => {
+    const textToSend = messageText || input;
+    if (!textToSend.trim() || isLoading) return;
+
+    const userMessage: Message = { role: "user", content: textToSend };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -165,14 +180,28 @@ const AIChat = () => {
             </Button>
           </CardHeader>
 
-          <CardContent className="flex-1 p-0">
-            <ScrollArea className="h-full p-4">
+          <CardContent className="flex-1 p-0 overflow-hidden">
+            <ScrollArea className="h-[400px] p-4" ref={scrollAreaRef}>
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-                  <Bot className="h-12 w-12 mb-4 opacity-50" />
-                  <p className="text-sm">
-                    Hi! I'm here to help with questions about study materials and the platform.
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <Bot className="h-12 w-12 mb-4 opacity-50 text-primary" />
+                  <p className="text-sm text-foreground mb-6">
+                    Hi! I'm EduSpark AI. Ask me about study materials, subjects, or the platform.
                   </p>
+                  <div className="space-y-2 w-full max-w-xs">
+                    <p className="text-xs text-muted-foreground mb-2">Suggested questions:</p>
+                    {SUGGESTED_QUESTIONS.map((question, idx) => (
+                      <Button
+                        key={idx}
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start text-left h-auto py-2 px-3"
+                        onClick={() => sendMessage(question)}
+                      >
+                        <span className="text-xs">{question}</span>
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -204,6 +233,7 @@ const AIChat = () => {
                       )}
                     </div>
                   ))}
+                  <div ref={messagesEndRef} />
                 </div>
               )}
             </ScrollArea>
