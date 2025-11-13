@@ -18,6 +18,28 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [signupPassword, setSignupPassword] = useState("");
+  const [showVerificationReminder, setShowVerificationReminder] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+
+  const handleResendVerification = async () => {
+    if (!verificationEmail) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: verificationEmail,
+      });
+
+      if (error) throw error;
+
+      toast.success("Verification email resent! Check your inbox.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend verification email");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -99,8 +121,9 @@ const Auth = () => {
           if (profileError) console.error("Failed to update education level:", profileError);
         }
 
-        toast.success("Account created successfully!");
-        navigate(validated.data.role === "admin" ? "/admin" : "/student");
+        toast.success("Account created successfully! Please check your email to verify your account.");
+        setVerificationEmail(validated.data.email);
+        setShowVerificationReminder(true);
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to sign up");
@@ -202,6 +225,57 @@ const Auth = () => {
       }}
     >
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      
+      {showVerificationReminder && (
+        <Card className="w-full max-w-md shadow-2xl relative z-10 mb-4 border-primary">
+          <CardContent className="pt-6">
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="bg-primary/10 p-2 rounded-lg">
+                  <svg
+                    className="h-5 w-5 text-primary"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-sm">Verify Your Email</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    We sent a verification link to <span className="font-medium">{verificationEmail}</span>
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={handleResendVerification}
+                  disabled={loading}
+                >
+                  {loading ? "Sending..." : "Resend Email"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowVerificationReminder(false)}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <Card className="w-full max-w-md shadow-2xl relative z-10">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
