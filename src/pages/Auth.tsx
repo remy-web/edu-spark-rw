@@ -11,11 +11,13 @@ import { GraduationCap } from "lucide-react";
 import classroomBg from "@/assets/classroom-bg.jpg";
 import { signUpSchema, signInSchema } from "@/lib/validations";
 import Footer from "@/components/Footer";
+import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [signupPassword, setSignupPassword] = useState("");
 
   const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -328,8 +330,11 @@ const Auth = () => {
                     type="password"
                     placeholder="••••••••"
                     minLength={6}
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
                     required
                   />
+                  <PasswordStrengthIndicator password={signupPassword} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-role">I am a:</Label>

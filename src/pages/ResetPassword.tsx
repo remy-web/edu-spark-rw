@@ -9,11 +9,13 @@ import { toast } from "sonner";
 import { GraduationCap } from "lucide-react";
 import classroomBg from "@/assets/classroom-bg.jpg";
 import Footer from "@/components/Footer";
+import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [validSession, setValidSession] = useState(false);
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     // Check if there's a valid recovery session
@@ -32,7 +34,6 @@ const ResetPassword = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
     try {
@@ -100,8 +101,11 @@ const ResetPassword = () => {
                 type="password"
                 placeholder="••••••••"
                 minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <PasswordStrengthIndicator password={password} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm New Password</Label>
