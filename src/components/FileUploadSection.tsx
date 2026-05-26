@@ -380,7 +380,7 @@ const FileUploadSection = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => window.open(file.file_url, '_blank')}
+                      onClick={() => openFile(file.file_url)}
                       title="View file"
                     >
                       <ExternalLink className="h-4 w-4" />
