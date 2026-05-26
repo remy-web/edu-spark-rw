@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink, Download, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import rebMaterialsData from "@/data/reb-materials.csv?raw";
 
 interface Material {
   Level: string;
