@@ -162,18 +162,16 @@ const Auth = () => {
 
       // Handle referral code if provided
       if (validated.data.referralCode && validated.data.referralCode.trim() !== "") {
-        const { data: codeData, error: codeError } = await supabase
-          .from("referral_codes")
-          .select("id")
-          .eq("code", validated.data.referralCode)
-          .eq("is_active", true)
-          .single();
+        const { data: codeId, error: codeError } = await supabase
+          .rpc("validate_referral_code", { code_text: validated.data.referralCode });
 
-        if (codeError || !codeData) {
+        if (codeError || !codeId) {
           toast.error("Invalid referral code");
           setLoading(false);
           return;
         }
+
+        const codeData = { id: codeId as string };
 
         // Check if user already has this referral code
         const { data: existingCode } = await supabase
