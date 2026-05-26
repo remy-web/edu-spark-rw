@@ -18,10 +18,11 @@ export const studyGuideSchema = z.object({
     .trim()
     .max(1000, "Description must be less than 1000 characters")
     .optional(),
+  // Either a full URL (external resource) or an internal storage path/filename.
   fileUrl: z.string()
     .trim()
-    .url("Invalid URL format")
-    .max(2000, "URL must be less than 2000 characters")
+    .min(1, "File is required")
+    .max(2000, "File reference must be less than 2000 characters")
     .optional(),
 });
 
