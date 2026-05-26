@@ -410,18 +410,9 @@ const Auth = () => {
                   />
                   <PasswordStrengthIndicator password={signupPassword} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-role">I am a:</Label>
-                  <select
-                    id="signup-role"
-                    name="role"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    required
-                  >
-                    <option value="student">Student</option>
-                    <option value="admin">Administrator</option>
-                  </select>
-                </div>
+                {/* Role selection removed: self-signup is restricted to the student
+                    role to prevent privilege escalation. Admins are provisioned by
+                    existing admins server-side. */}
                 <div className="space-y-2" id="education-level-field">
                   <Label htmlFor="signup-level">Education Level</Label>
                   <select
