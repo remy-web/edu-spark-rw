@@ -48,9 +48,9 @@ export const signUpSchema = z.object({
     .trim()
     .min(1, "Full name is required")
     .max(100, "Full name must be less than 100 characters"),
-  role: z.enum(["admin", "student"], {
-    errorMap: () => ({ message: "Invalid role" })
-  }),
+  // Self-signup only allows the student role. Admin roles must be granted
+  // server-side by an existing admin to prevent privilege escalation.
+  role: z.literal("student").default("student"),
 });
 
 export const signInSchema = z.object({

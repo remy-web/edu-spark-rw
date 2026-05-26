@@ -73,7 +73,7 @@ const Auth = () => {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
       fullName: formData.get("fullName") as string,
-      role: formData.get("role") as "admin" | "student",
+      role: "student" as const,
     };
 
     const educationLevel = formData.get("educationLevel") as string;
@@ -162,18 +162,16 @@ const Auth = () => {
 
       // Handle referral code if provided
       if (validated.data.referralCode && validated.data.referralCode.trim() !== "") {
-        const { data: codeData, error: codeError } = await supabase
-          .from("referral_codes")
-          .select("id")
-          .eq("code", validated.data.referralCode)
-          .eq("is_active", true)
-          .single();
+        const { data: codeId, error: codeError } = await supabase
+          .rpc("validate_referral_code", { code_text: validated.data.referralCode });
 
-        if (codeError || !codeData) {
+        if (codeError || !codeId) {
           toast.error("Invalid referral code");
           setLoading(false);
           return;
         }
+
+        const codeData = { id: codeId as string };
 
         // Check if user already has this referral code
         const { data: existingCode } = await supabase
@@ -410,18 +408,9 @@ const Auth = () => {
                   />
                   <PasswordStrengthIndicator password={signupPassword} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-role">I am a:</Label>
-                  <select
-                    id="signup-role"
-                    name="role"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    required
-                  >
-                    <option value="student">Student</option>
-                    <option value="admin">Administrator</option>
-                  </select>
-                </div>
+                {/* Role selection removed: self-signup is restricted to the student
+                    role to prevent privilege escalation. Admins are provisioned by
+                    existing admins server-side. */}
                 <div className="space-y-2" id="education-level-field">
                   <Label htmlFor="signup-level">Education Level</Label>
                   <select

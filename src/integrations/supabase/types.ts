@@ -264,6 +264,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      validate_referral_code: { Args: { code_text: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "student" | "teacher"
