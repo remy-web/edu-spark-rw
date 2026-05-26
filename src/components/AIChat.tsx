@@ -78,18 +78,27 @@ const AIChat = () => {
     onDone: () => void;
   }) => {
     const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
-    
+
+    const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
+    if (!session) {
+      toast.error("Please sign in to use the AI assistant.");
+      throw new Error("Not authenticated");
+    }
+
     const resp = await fetch(CHAT_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({ messages }),
     });
 
     if (!resp.ok) {
-      if (resp.status === 429) {
+      if (resp.status === 401) {
+        toast.error("Please sign in to use the AI assistant.");
+      } else if (resp.status === 429) {
         toast.error("Rate limit exceeded. Please try again later.");
       } else if (resp.status === 402) {
         toast.error("AI service unavailable. Please contact support.");
