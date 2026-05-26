@@ -29,11 +29,9 @@ const REBMaterialsTab = () => {
 
   const loadMaterials = async () => {
     try {
-      const response = await fetch("/src/data/reb-materials.csv");
-      const text = await response.text();
+      const text = rebMaterialsData;
       const lines = text.split("\n").filter(line => line.trim());
-      const headers = lines[0].split(",");
-      
+
       const data = lines.slice(1).map(line => {
         const values = line.split(",");
         return {
@@ -42,7 +40,7 @@ const REBMaterialsTab = () => {
           "Download Link": values[2]?.trim() || ""
         };
       });
-      
+
       setMaterials(data);
       setFilteredMaterials(data);
     } catch (error) {
