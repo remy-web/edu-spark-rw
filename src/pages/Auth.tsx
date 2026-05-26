@@ -73,7 +73,7 @@ const Auth = () => {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
       fullName: formData.get("fullName") as string,
-      role: formData.get("role") as "admin" | "student",
+      role: "student" as const,
     };
 
     const educationLevel = formData.get("educationLevel") as string;
