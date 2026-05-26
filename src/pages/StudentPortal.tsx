@@ -238,8 +238,33 @@ const StudentPortal = () => {
 
   const handleDownloadGuide = async (guide: StudyGuide) => {
     await trackDownload(guide.title, guide.education_level, guide.subject);
-    window.open(guide.file_url, '_blank');
-    setFeedbackGuideId(guide.id);
+
+    const ref = guide.file_url || "";
+    // External http(s) URL → open directly
+    if (/^https?:\/\//i.test(ref) && !ref.includes("/storage/v1/object/")) {
+      window.open(ref, "_blank");
+      setFeedbackGuideId(guide.id);
+      return;
+    }
+
+    // Otherwise resolve to a storage path inside the study-materials bucket
+    // and request a short-lived signed URL.
+    let path = ref;
+    const marker = "/study-materials/";
+    const idx = ref.indexOf(marker);
+    if (idx !== -1) path = ref.substring(idx + marker.length);
+
+    try {
+      const { data, error } = await supabase.storage
+        .from("study-materials")
+        .createSignedUrl(path, 60 * 10); // 10 minutes
+      if (error || !data?.signedUrl) throw error || new Error("Could not generate download link");
+      window.open(data.signedUrl, "_blank");
+      setFeedbackGuideId(guide.id);
+    } catch (err: any) {
+      console.error("Download failed:", err);
+      toast.error("Could not open this file. Please try again.");
+    }
   };
 
   const handleDownloadREBMaterial = async (material: REBMaterial) => {

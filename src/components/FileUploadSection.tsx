@@ -75,10 +75,10 @@ const FileUploadSection = () => {
 
   const uploadFileToStorage = async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    setUploadProgress(50); // Show progress
+    setUploadProgress(50);
 
     const { error: uploadError } = await supabase.storage
       .from('study-materials')
@@ -88,11 +88,8 @@ const FileUploadSection = () => {
 
     setUploadProgress(100);
 
-    const { data } = supabase.storage
-      .from('study-materials')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+    // Bucket is private — store the storage path; downloads use signed URLs.
+    return filePath;
   };
 
   const handleFileUpload = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -156,11 +153,37 @@ const FileUploadSection = () => {
     }
   };
 
+  // Extract the storage path from either a full Supabase public URL or a bare path.
+  // Returns null when the reference is an external URL (not in our bucket).
+  const toStoragePath = (ref: string): string | null => {
+    if (!ref) return null;
+    const marker = "/study-materials/";
+    const idx = ref.indexOf(marker);
+    if (idx !== -1) return ref.substring(idx + marker.length);
+    if (/^https?:\/\//i.test(ref)) return null;
+    return ref;
+  };
+
+  const openFile = async (ref: string) => {
+    const path = toStoragePath(ref);
+    if (!path) {
+      window.open(ref, "_blank");
+      return;
+    }
+    const { data, error } = await supabase.storage
+      .from("study-materials")
+      .createSignedUrl(path, 60 * 10);
+    if (error || !data?.signedUrl) {
+      toast.error("Could not open this file.");
+      return;
+    }
+    window.open(data.signedUrl, "_blank");
+  };
+
   const handleDeleteFile = async (fileId: string, fileUrl: string) => {
     if (!confirm("Are you sure you want to delete this file?")) return;
 
     try {
-      // Delete from database
       const { error: dbError } = await supabase
         .from("study_guides")
         .delete()
@@ -168,12 +191,9 @@ const FileUploadSection = () => {
 
       if (dbError) throw dbError;
 
-      // Delete from storage if it's a storage URL
-      if (fileUrl.includes('study-materials')) {
-        const filePath = fileUrl.split('/study-materials/').pop();
-        if (filePath) {
-          await supabase.storage.from('study-materials').remove([filePath]);
-        }
+      const path = toStoragePath(fileUrl);
+      if (path) {
+        await supabase.storage.from("study-materials").remove([path]);
       }
 
       toast.success("File deleted successfully");
@@ -360,7 +380,7 @@ const FileUploadSection = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => window.open(file.file_url, '_blank')}
+                      onClick={() => openFile(file.file_url)}
                       title="View file"
                     >
                       <ExternalLink className="h-4 w-4" />
