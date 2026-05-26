@@ -75,10 +75,10 @@ const FileUploadSection = () => {
 
   const uploadFileToStorage = async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    setUploadProgress(50); // Show progress
+    setUploadProgress(50);
 
     const { error: uploadError } = await supabase.storage
       .from('study-materials')
@@ -88,11 +88,8 @@ const FileUploadSection = () => {
 
     setUploadProgress(100);
 
-    const { data } = supabase.storage
-      .from('study-materials')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+    // Bucket is private — store the storage path; downloads use signed URLs.
+    return filePath;
   };
 
   const handleFileUpload = async (e: React.FormEvent<HTMLFormElement>) => {
